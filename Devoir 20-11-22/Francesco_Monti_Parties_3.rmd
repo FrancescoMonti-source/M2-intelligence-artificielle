@@ -63,25 +63,63 @@ As a sidenote, there is no description of "q5_eortc_fatigue_r1" in the statement
 str(data)
 ```
 
-## 6. Some of the variables are in the wrong format, for example, a qualitative variable in "numeric" format. Based on the description of each variable (found at the beginning of this exercise), recode the variable(s) into the correct format
+## 6. Some of the variables are in the wrong format, for example, a qualitative variable in "numeric" format. Based on the description of each variable (found at the beginning of this exercise), re-code the variable(s) into the correct format
 
 ```{r}
-data$q5_eortc_fatigue_r1 = as.numeric(str_replace(data$q5_eortc_fatigue_r1, ",", "."))  # replacing "," with "." is necessary for as.numeric() to work correctly
+# replacing "," with "." is necessary for as.numeric() to work correctly
+data$q5_eortc_fatigue_r1 = 
+  as.numeric(str_replace(data$q5_eortc_fatigue_r1, ",", "."))  
 
 sum(is.na(data$q5_eortc_fatigue_r1))  # 6 NAs introduced where cells were "!NULL"
 
-# For several variables it could be appropriate to convert them to factors but, as working with factors can be at times, annoying, i would rather wait and see.
+# ----------------------------------- #
+# For several variables it could be appropriate to convert them to factors but, at this stage of the analysis its rather optional.
 
-# Recording qualitative variables as factors
 # Health insurance
 data$fc_caisse = factor(data$fc_caisse, labels = c("CNAMTS", "MSA", "RSI"))
+
 # Pathology location
-data$ms_codcancer = factor(data$ms_codcancer, labels = c("Breast", "Lung", "Colon & Rectum", "Prostate", "VADS", "Bladder", "Kidney", "Thyroid", "Lymphoma", "Melanoma", "Cervix", "Uterus"))
+data$ms_codcancer = factor(data$ms_codcancer, 
+                           labels = c("Breast", "Lung", "Colon & Rectum",
+                                      "Prostate", "VADS", "Bladder", "Kidney",
+                                      "Thyroid", "Lymphoma", "Melanoma", "Cervix",
+                                      "Uterus"))
+
 # Marital status
-data$q5_sd4_r1 = factor(data$q5_sd4_r1, labels = c("Married/Partnered/Concubine", "Single/Divorced/Separated/Widowed"))
+data$q5_sd4_r1 = factor(data$q5_sd4_r1, 
+                        labels = c("Married/Partnered/Concubine", 
+                                   "Single/Divorced/Separated/Widowed"))
+
+# Children yes/non
+data$q5_sd5 = factor(data$q5_sd5, labels = c("Yes", "Non"))
+
+# Level of study
+data$q5_sd10_r2 <- factor(data$q5_sd10_r2, 
+                          labels = c("No degree", "Less than Bachelor's degree",
+                                     "High school diploma or more"))
+
+# Pain
+data$q5_pain <- factor(data$q5_pain, labels = c("Yes", "Non"))
+
+# Anxiety
+data$q5_anxiete <- factor(data$q5_anxiete, 
+                          labels = c("No anxiety", "Questionable anxiety state",
+                                     "Certain anxiety state"))
+
+# Net salary category
+data$q5_jobv5.36_r1 <- factor(data$q5_jobv5.36_r1, 
+                              labels = c("<1500€", ">=1500€","Not employed"))
+
+# Sequels
+data$q5_med23.1 <- factor(data$q5_med23.1, 
+                          labels = c("YES and they are very important", 
+                                     "YES and they are important", 
+                                     "YES but moderate", "YES but very moderate",
+                                     "NO, i have no after-effects"))
 ```
 
 ```{r}
+# Associationg a label with each variable, purely for QoL
 label(data$fc_caisse) <- "Health insurance"
 label(data$ms_codcancer) <- "Pathology's location"
 label(data$fc_agediag_r0) <- "Age"
@@ -96,6 +134,7 @@ label(data$q5_depression) <- "Depression"
 label(data$q5_jobv5.36_r1) <- "Net salary"
 label(data$ms_csp_enq_3c_r1) <- "Socio-professional category"
 label(data$q5_med23.1) <- "Sequels"
+label(data$q5_eortc_fatigue_r1) <- "EORTC fatigue scale"
 ```
 
 ## 7. Definition of clinically significant fatigue score: score \>= 40 on the fatigue scale included in the survey, the threshold at which a fatigue condition was shown to be clinically significant. Create a categorical variable based on this definition.
@@ -106,6 +145,8 @@ data$q5_eortc_fatigue_r1_fac =
       breaks = c(0,40,100), 
       labels = c("Clinically significant", "Not clinically significant"), 
       include.lowest = T)
+
+label(data$q5_eortc_fatigue_r1_fac) <- "EORTC fatigue scale"
 ```
 
 ## 8. Group the modalities of the variable sequelae into 3 modalities.
@@ -113,9 +154,10 @@ data$q5_eortc_fatigue_r1_fac =
 This new variable, named "Q5_med23.1_rec" will be considered in the following analyses instead of "Q5_med23.1".
 
 ```{r}
-data$q5_med23.1_rec = factor(data$q5_med23.1, 
-                             levels = c(1,2,3,4,5), 
-                             labels = c("Important sequelae","Important sequelae", "Moderate sequelae", "Moderate sequelae", "No sequelae"))
+data$q5_med23.1_rec = factor(data$q5_med23.1,
+                             labels = c("Important sequelae","Important sequelae",
+                                        "Moderate sequelae", "Moderate sequelae",
+                                        "No sequelae"))
 ```
 
 ## 9. Display the frequency table for this new variable.
@@ -123,7 +165,8 @@ data$q5_med23.1_rec = factor(data$q5_med23.1,
 ```{r}
 a = table(data$q5_med23.1_rec)
 b = paste(round(prop.table(table(data$q5_med23.1_rec))*100,2),"%")
-rbind(a,b)
+
+print(rbind(a,b))
 ```
 
 ## 10. Concerning age: What is the average age of our study population, then that of breast cancer.
