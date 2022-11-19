@@ -1,0 +1,363 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+%
+\documentclass[
+]{article}
+\usepackage{amsmath,amssymb}
+\usepackage{lmodern}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math}
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.77,0.63,0.00}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\BuiltInTok}[1]{#1}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ImportTok}[1]{#1}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\usepackage{graphicx}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+% Set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\ifLuaTeX
+  \usepackage{selnolig}  % disable illegal ligatures
+\fi
+\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same} % disable monospaced font for URLs
+\hypersetup{
+  pdftitle={Homework part 3},
+  pdfauthor={Francesco MONTI},
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+
+\title{Homework part 3}
+\author{Francesco MONTI}
+\date{2022-11-17}
+
+\begin{document}
+\maketitle
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(stringr)}
+\FunctionTok{library}\NormalTok{(prettyR)}
+\FunctionTok{library}\NormalTok{(ggplot2)}
+\FunctionTok{library}\NormalTok{(ggthemes)}
+\FunctionTok{library}\NormalTok{(colorRamps)}
+
+\NormalTok{knitr}\SpecialCharTok{::}\NormalTok{opts\_chunk}\SpecialCharTok{$}\FunctionTok{set}\NormalTok{(}\AttributeTok{echo =}\NormalTok{ F, }\AttributeTok{warning =}\NormalTok{ F) }\CommentTok{\# setting chunk options globally}
+\end{Highlighting}
+\end{Shaded}
+
+\hypertarget{import-the-file-bdd_vican.csv}{%
+\subsection{1) Import the file
+``BDD\_VICAN.csv''}\label{import-the-file-bdd_vican.csv}}
+
+\hypertarget{display-the-first-lines-of-the-dataset.-display-the-lines-1-4-18-103-of-the-dataset}{%
+\subsection{2) Display the first lines of the dataset. Display the lines
+1; 4; 18; 103 of the
+dataset}\label{display-the-first-lines-of-the-dataset.-display-the-lines-1-4-18-103-of-the-dataset}}
+
+\begin{verbatim}
+##   fc_caisse ms_codcancer fc_agediag_r0 q5_sd4_r1 q5_sd5 q5_sd10_r2 q5_pcs12_r1
+## 1         1            1            51         1      1          3    36.17192
+## 2         1            1            50         2      1          2    44.73504
+## 3         1            1            49         2      2          2    58.32207
+## 4         1            7            50         1      1          3    56.38174
+## 5         1           10            26         1      1          3    61.12935
+## 6         1           81            35         1      1          3    20.59613
+##   q5_mcs12_r1 q5_eortc_fatigue_r1 q5_anxiete q5_depression q5_jobv5.36_r1
+## 1    32.31987           66,666667          1             0              3
+## 2    33.16873           66,666667          2             0              1
+## 3    58.63898           22,222222          0             0              2
+## 4    51.82826           11,111111          0             0              2
+## 5    44.05385           55,555556          1             0              2
+## 6    52.33494                 100          0             0              1
+##   ms_csp_enq_3c_r1 q5_med23.1 id q5_pain
+## 1                3          5  2       0
+## 2                1          5  3       0
+## 3                1          5  4       0
+## 4                2          5  5       0
+## 5                1          5  6       1
+## 6                2          2  7       1
+\end{verbatim}
+
+\begin{verbatim}
+##     fc_caisse ms_codcancer fc_agediag_r0 q5_sd4_r1 q5_sd5 q5_sd10_r2
+## 1           1            1            51         1      1          3
+## 4           1            7            50         1      1          3
+## 18          1            1            50         2      1          3
+## 103         1            3            51         1      1          3
+##     q5_pcs12_r1 q5_mcs12_r1 q5_eortc_fatigue_r1 q5_anxiete q5_depression
+## 1      36.17192    32.31987           66,666667          1             0
+## 4      56.38174    51.82826           11,111111          0             0
+## 18     40.27254    28.48350           66,666667          2             1
+## 103    62.53169    38.25137           22,222222          1             0
+##     q5_jobv5.36_r1 ms_csp_enq_3c_r1 q5_med23.1  id q5_pain
+## 1                3                3          5   2       0
+## 4                2                2          5   5       0
+## 18               1                2          3  19       1
+## 103              2                2          4 106       0
+\end{verbatim}
+
+\hypertarget{how-many-variables-and-observations-are-there}{%
+\subsection{3. How many variables and observations are
+there?}\label{how-many-variables-and-observations-are-there}}
+
+\begin{verbatim}
+## [1] 16
+\end{verbatim}
+
+\begin{verbatim}
+## [1] 3962
+\end{verbatim}
+
+\hypertarget{does-this-file-contain-any-missing-values}{%
+\subsection{4. Does this file contain any missing
+values?}\label{does-this-file-contain-any-missing-values}}
+
+\begin{verbatim}
+##           fc_caisse        ms_codcancer       fc_agediag_r0           q5_sd4_r1 
+##                   0                   0                   0                   0 
+##              q5_sd5          q5_sd10_r2         q5_pcs12_r1         q5_mcs12_r1 
+##                   0                   0                   0                   0 
+## q5_eortc_fatigue_r1          q5_anxiete       q5_depression      q5_jobv5.36_r1 
+##                   0                   0                   0                   0 
+##    ms_csp_enq_3c_r1          q5_med23.1                  id             q5_pain 
+##                   0                   0                   0                   0
+\end{verbatim}
+
+\begin{verbatim}
+## [1] 0
+\end{verbatim}
+
+On a first impression, the dataframe looks to be free of any NAs. We'll
+see later that this is not true: the variable ``q5\_eortc\_fatigue\_r1''
+as been incorrectly identified as ``character'' as missing values have
+been tagged as ``!NULL'' rather than leaving the cells empty.
+
+As a sidenote, there is no description of ``q5\_eortc\_fatigue\_r1'' in
+the statement of the homework
+
+\hypertarget{what-is-the-nature-of-the-variables-studied}{%
+\subsection{5. What is the nature of the variables
+studied?}\label{what-is-the-nature-of-the-variables-studied}}
+
+\begin{verbatim}
+## 'data.frame':    3962 obs. of  16 variables:
+##  $ fc_caisse          : int  1 1 1 1 1 1 1 1 1 1 ...
+##  $ ms_codcancer       : int  1 1 1 7 10 81 10 1 3 1 ...
+##  $ fc_agediag_r0      : int  51 50 49 50 26 35 37 47 50 43 ...
+##  $ q5_sd4_r1          : int  1 2 2 1 1 1 1 1 1 2 ...
+##  $ q5_sd5             : int  1 1 2 1 1 1 1 2 1 2 ...
+##  $ q5_sd10_r2         : int  3 2 2 3 3 3 3 3 2 2 ...
+##  $ q5_pcs12_r1        : num  36.2 44.7 58.3 56.4 61.1 ...
+##  $ q5_mcs12_r1        : num  32.3 33.2 58.6 51.8 44.1 ...
+##  $ q5_eortc_fatigue_r1: chr  "66,666667" "66,666667" "22,222222" "11,111111" ...
+##  $ q5_anxiete         : int  1 2 0 0 1 0 0 2 0 0 ...
+##  $ q5_depression      : int  0 0 0 0 0 0 0 0 0 0 ...
+##  $ q5_jobv5.36_r1     : int  3 1 2 2 2 1 1 2 2 1 ...
+##  $ ms_csp_enq_3c_r1   : int  3 1 1 2 1 2 2 2 2 1 ...
+##  $ q5_med23.1         : int  5 5 5 5 5 2 5 5 1 4 ...
+##  $ id                 : int  2 3 4 5 6 7 8 9 10 11 ...
+##  $ q5_pain            : int  0 0 0 0 1 1 0 0 1 0 ...
+\end{verbatim}
+
+\hypertarget{some-of-the-variables-are-in-the-wrong-format-for-example-a-qualitative-variable-in-numeric-format.-based-on-the-description-of-each-variable-found-at-the-beginning-of-this-exercise-recode-the-variables-into-the-correct-format}{%
+\subsection{6. Some of the variables are in the wrong format, for
+example, a qualitative variable in ``numeric'' format. Based on the
+description of each variable (found at the beginning of this exercise),
+recode the variable(s) into the correct
+format}\label{some-of-the-variables-are-in-the-wrong-format-for-example-a-qualitative-variable-in-numeric-format.-based-on-the-description-of-each-variable-found-at-the-beginning-of-this-exercise-recode-the-variables-into-the-correct-format}}
+
+\begin{verbatim}
+## [1] 6
+\end{verbatim}
+
+\hypertarget{definition-of-clinically-significant-fatigue-score-score-40-on-the-fatigue-scale-included-in-the-survey-the-threshold-at-which-a-fatigue-condition-was-shown-to-be-clinically-significant.-create-a-categorical-variable-based-on-this-definition.}{%
+\subsection{7. Definition of clinically significant fatigue score: score
+\textgreater= 40 on the fatigue scale included in the survey, the
+threshold at which a fatigue condition was shown to be clinically
+significant. Create a categorical variable based on this
+definition.}\label{definition-of-clinically-significant-fatigue-score-score-40-on-the-fatigue-scale-included-in-the-survey-the-threshold-at-which-a-fatigue-condition-was-shown-to-be-clinically-significant.-create-a-categorical-variable-based-on-this-definition.}}
+
+\hypertarget{group-the-modalities-of-the-variable-sequelae-into-3-modalities.}{%
+\subsection{8. Group the modalities of the variable sequelae into 3
+modalities.}\label{group-the-modalities-of-the-variable-sequelae-into-3-modalities.}}
+
+This new variable, named ``Q5\_med23.1\_rec'' will be considered in the
+following analyses instead of ``Q5\_med23.1''.
+
+\hypertarget{display-the-frequency-table-for-this-new-variable.}{%
+\subsection{9. Display the frequency table for this new
+variable.}\label{display-the-frequency-table-for-this-new-variable.}}
+
+\begin{verbatim}
+##   Important sequelae Moderate sequelae No sequelae
+## a "907"              "1652"            "1403"     
+## b "22.89 %"          "41.7 %"          "35.41 %"
+\end{verbatim}
+
+\hypertarget{concerning-age-what-is-the-average-age-of-our-study-population-then-that-of-breast-cancer.}{%
+\subsection{10. Concerning age: What is the average age of our study
+population, then that of breast
+cancer.}\label{concerning-age-what-is-the-average-age-of-our-study-population-then-that-of-breast-cancer.}}
+
+\begin{verbatim}
+## [1] 54.71858
+\end{verbatim}
+
+\begin{verbatim}
+## [1] 50.34656
+\end{verbatim}
+
+\hypertarget{determine-the-95-confidence-intervals-ci-for-each-of-the-calculated-means.}{%
+\subsubsection{Determine the 95\% confidence intervals (CI) for each of
+the calculated
+means.}\label{determine-the-95-confidence-intervals-ci-for-each-of-the-calculated-means.}}
+
+\begin{verbatim}
+## [1] 54.33283 55.10433
+## attr(,"conf.level")
+## [1] 0.95
+\end{verbatim}
+
+\begin{verbatim}
+## [1] 49.72758 50.96554
+## attr(,"conf.level")
+## [1] 0.95
+\end{verbatim}
+
+\hypertarget{calculate-the-variance-standard-deviation-of-the-sample-then-that-of-breast-cancer.}{%
+\subsubsection{Calculate the variance, standard deviation of the sample,
+then that of breast
+cancer.}\label{calculate-the-variance-standard-deviation-of-the-sample-then-that-of-breast-cancer.}}
+
+\begin{verbatim}
+## Description of the age variable for the whole population
+\end{verbatim}
+
+\begin{verbatim}
+## 
+##  Numeric 
+##      var    sd
+## x 153.38 12.38
+\end{verbatim}
+
+\begin{verbatim}
+## Description of the age variable for the breast cancer population
+\end{verbatim}
+
+\begin{verbatim}
+## 
+##  Numeric 
+##      var    sd
+## x 112.86 10.62
+\end{verbatim}
+
+\hypertarget{draw-a-graph-that-will-represent-the-distribution-of-age-by-location-of-the-pathology.-choose-the-most-appropriate-graph.-export-the-graph-in-a-pdf-format.}{%
+\subsection{11. Draw a graph that will represent the distribution of age
+by location of the pathology. Choose the most appropriate graph. Export
+the graph in a pdf
+format.}\label{draw-a-graph-that-will-represent-the-distribution-of-age-by-location-of-the-pathology.-choose-the-most-appropriate-graph.-export-the-graph-in-a-pdf-format.}}
+
+\includegraphics{Francesco_Monti_Parties_3_files/figure-latex/unnamed-chunk-13-1.pdf}
+\includegraphics{Francesco_Monti_Parties_3_files/figure-latex/unnamed-chunk-13-2.pdf}
+
+\begin{verbatim}
+## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+\end{verbatim}
+
+\includegraphics{Francesco_Monti_Parties_3_files/figure-latex/unnamed-chunk-13-3.pdf}
+
+\begin{verbatim}
+## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
+\end{verbatim}
+
+\hypertarget{determine-the-factors-associated-with-physical-and-then-mental-quality-of-life-including-variables-with-a-p-value-0.2.-which-model-will-you-use-how-will-you-proceed-interpret-the-final-result.}{%
+\subsection{12. Determine the factors associated with physical and then
+mental quality of life, including variables with a p-value \textless{}
+0.2. Which model will you use? How will you proceed? Interpret the final
+result.}\label{determine-the-factors-associated-with-physical-and-then-mental-quality-of-life-including-variables-with-a-p-value-0.2.-which-model-will-you-use-how-will-you-proceed-interpret-the-final-result.}}
+
+\hypertarget{export-the-new-database-in-.csv-format.}{%
+\subsection{13. Export the new database in ``.csv''
+format.}\label{export-the-new-database-in-.csv-format.}}
+
+\hypertarget{section}{%
+\subsection{}\label{section}}
+
+\end{document}

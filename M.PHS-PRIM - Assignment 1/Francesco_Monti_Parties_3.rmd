@@ -1,0 +1,314 @@
+---
+title: "Homework part 3"
+author: "Francesco MONTI"
+date: "2022-11-17"
+output: pdf_document
+option: warning = F
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r libraries}
+library(stringr)
+library(prettyR)
+library(ggplot2)
+library(tidyverse)
+library(ggthemes)
+library(colorRamps)
+library(corrplot)
+library(psych)
+library(Hmisc)
+library(knitr)
+
+```
+
+## 1) Import the file "BDD_VICAN.csv"
+
+```{r}
+data <- read.csv("BDD_VICAN.csv", sep = ";", dec = ",", encoding = "UTF-8")
+
+names(data) = tolower(names(data)) # removing capital letters as working with them can be annoying
+```
+
+## 2) Display the first lines of the dataset. Display the lines 1; 4; 18; 103 of the dataset
+
+```{r echo=F}
+head(data) # first lines
+
+data[c(1, 4, 18, 103), ] # lines 1,4,18,103
+
+```
+
+## 3. How many variables and observations are there?
+
+```{r echo=F}
+ncol(data) # variables count
+
+nrow(data) # observations count
+```
+
+## 4. Does this file contain any missing values?
+
+```{r}
+sapply(data, function(x) sum(is.na(x))) # NAs by variable
+
+sum(is.na(data)) # global NAs
+```
+
+On a first impression, the dataframe looks to be free of any NAs. We'll see later that this is not true: the variable "q5_eortc_fatigue_r1" as been incorrectly identified as "character" as missing values have been tagged as "!NULL" rather than leaving the cells empty.
+
+As a sidenote, there is no description of "q5_eortc_fatigue_r1" in the statement of the homework
+
+## 5. What is the nature of the variables studied?
+
+```{r}
+str(data)
+```
+
+## 6. Some of the variables are in the wrong format, for example, a qualitative variable in "numeric" format. Based on the description of each variable (found at the beginning of this exercise), re-code the variable(s) into the correct format
+
+```{r}
+# replacing "," with "." is necessary for as.numeric() to work correctly
+data$q5_eortc_fatigue_r1 = 
+  as.numeric(str_replace(data$q5_eortc_fatigue_r1, ",", "."))  
+
+sum(is.na(data$q5_eortc_fatigue_r1))  # 6 NAs introduced where cells were "!NULL"
+
+# ----------------------------------- #
+# For several variables it could be appropriate to convert them to factors but, at this stage of the analysis its rather optional.
+
+# Health insurance
+data$fc_caisse = factor(data$fc_caisse, labels = c("CNAMTS", "MSA", "RSI"))
+
+# Pathology location
+data$ms_codcancer = factor(data$ms_codcancer, 
+                           labels = c("Breast", "Lung", "Colon & Rectum",
+                                      "Prostate", "VADS", "Bladder", "Kidney",
+                                      "Thyroid", "Lymphoma", "Melanoma", "Cervix",
+                                      "Uterus"))
+
+# Marital status
+data$q5_sd4_r1 = factor(data$q5_sd4_r1, 
+                        labels = c("Married/Partnered/Concubine", 
+                                   "Single/Divorced/Separated/Widowed"))
+
+# Children yes/non
+data$q5_sd5 = factor(data$q5_sd5, labels = c("Yes", "Non"))
+
+# Level of study
+data$q5_sd10_r2 <- factor(data$q5_sd10_r2, 
+                          labels = c("No degree", "Less than Bachelor's degree",
+                                     "High school diploma or more"))
+
+# Pain
+data$q5_pain <- factor(data$q5_pain, labels = c("Yes", "Non"))
+
+# Anxiety
+data$q5_anxiete <- factor(data$q5_anxiete, 
+                          labels = c("No anxiety", "Questionable anxiety state",
+                                     "Certain anxiety state"))
+
+# Net salary category
+data$q5_jobv5.36_r1 <- factor(data$q5_jobv5.36_r1, 
+                              labels = c("<1500€", ">=1500€","Not employed"))
+
+# Social category
+data$ms_csp_enq_3c_r1 <- factor(data$ms_csp_enq_3c_r1, 
+                                labels = c("Executives", "Managerial occupations", "Not employed"))
+
+# Sequels
+data$q5_med23.1 <- factor(data$q5_med23.1, 
+                          labels = c("YES and they are very important", 
+                                     "YES and they are important", 
+                                     "YES but moderate", "YES but very moderate",
+                                     "NO, i have no after-effects"))
+```
+
+```{r}
+# Associationg a label with each variable, purely for QoL
+label(data$fc_caisse) <- "Health insurance"
+label(data$ms_codcancer) <- "Pathology's location"
+label(data$fc_agediag_r0) <- "Age"
+label(data$q5_sd4_r1) <- "Marital status"
+label(data$q5_sd5) <- "Children yes/non"
+label(data$q5_sd10_r2) <- "Level of study"
+label(data$q5_pcs12_r1) <- "Physical QoL"
+label(data$q5_mcs12_r1) <- "Mental QoL"
+label(data$q5_pain) <- "Pain"
+label(data$q5_anxiete) <- "Anxiety"
+label(data$q5_depression) <- "Depression"
+label(data$q5_jobv5.36_r1) <- "Net salary"
+label(data$ms_csp_enq_3c_r1) <- "Socio-professional category"
+label(data$q5_med23.1) <- "Sequels"
+label(data$q5_eortc_fatigue_r1) <- "EORTC fatigue scale"
+```
+
+## 7. Definition of clinically significant fatigue score: score \>= 40 on the fatigue scale included in the survey, the threshold at which a fatigue condition was shown to be clinically significant. Create a categorical variable based on this definition.
+
+```{r}
+data$q5_eortc_fatigue_r1_fac = 
+  cut(data$q5_eortc_fatigue_r1, 
+      breaks = c(0,40,100), 
+      labels = c("Clinically significant", "Not clinically significant"), 
+      include.lowest = T)
+
+label(data$q5_eortc_fatigue_r1_fac) <- "EORTC fatigue scale"
+```
+
+## 8. Group the modalities of the variable sequelae into 3 modalities.
+
+This new variable, named "Q5_med23.1_rec" will be considered in the following analyses instead of "Q5_med23.1".
+
+```{r}
+data$q5_med23.1_rec = factor(data$q5_med23.1,
+                             labels = c("Important sequelae","Important sequelae",
+                                        "Moderate sequelae", "Moderate sequelae",
+                                        "No sequelae"))
+
+label(data$q5_med23.1_rec) = "Sequels"
+```
+
+## 9. Display the frequency table for this new variable.
+
+```{r}
+a = table(data$q5_med23.1_rec)
+b = paste(round(prop.table(table(data$q5_med23.1_rec))*100,2),"%")
+
+print(rbind(a,b))
+```
+
+## 10. Concerning age: What is the average age of our study population, then that of breast cancer.
+
+```{r}
+whole_pop = data$fc_agediag_r0
+breast_pop = data$fc_agediag_r0[which(data$ms_codcancer=="Breast")]
+
+mean(whole_pop) # Mean age of our population
+
+mean(breast_pop, na.rm=T) # mean age for breast cancer subpopulation. 
+```
+
+### Determine the 95% confidence intervals (CI) for each of the calculated means.
+
+```{r}
+t.test(whole_pop)$"conf.int" # T confidence intervals for the whole population
+
+t.test(breast_pop)$"conf.int" # T confidence interval for the breast cancer subpopulation
+```
+
+### Calculate the variance, standard deviation of the sample, then that of breast cancer.
+
+```{r}
+prettyR::describe(whole_pop,num.desc=c("var","sd"), xname="the age variable for the whole population", horizontal=FALSE)
+
+prettyR::describe(breast_pop,num.desc=c("var","sd"), xname="the age variable for the breast cancer population", horizontal=FALSE)
+```
+
+## 11. Draw a graph that will represent the distribution of age by location of the pathology. Choose the most appropriate graph. Export the graph in a pdf format.
+
+```{r}
+# Solution 1
+ggplot(data = data, 
+       aes(x=fc_agediag_r0, group = ms_codcancer, fill = ms_codcancer)) +
+    geom_density()+
+    scale_fill_brewer(palette="Set3")+
+    scale_y_continuous(breaks = seq(0,0.1, 0.01), minor_breaks = seq(0, 0.005, 0.01))+
+    scale_x_continuous(breaks = seq(0,100, 5))+
+    labs(x = "Age",
+         y = "Distribution probability",
+         title = "Age distribution by cancer location",
+         fill = "Cancer location")+
+    facet_grid(vars(ms_codcancer))+
+    theme(strip.text.y = element_text(size = 7))
+
+ggsave("Solution 1.pdf", plot = last_plot(), device = "pdf", dpi = 300, width = 20, height = 35, units = "cm")
+
+# Solution 2
+ggplot(data = data, 
+       aes(x=fc_agediag_r0, group = ms_codcancer, fill = ms_codcancer)) +
+  geom_density()+
+  scale_fill_brewer(palette="Set3")+
+  scale_y_continuous(breaks = seq(0,0.1, 0.01), minor_breaks = seq(0, 0.005, 0.01))+
+  scale_x_continuous(breaks = seq(0,100, 5))+
+  labs(x = "Age",
+       y = "Distribution probability",
+       title = "Age distribution by cancer location",
+       fill = "Cancer location")+
+    facet_wrap(vars(ms_codcancer))
+
+ggsave("Solution 2.pdf", plot = last_plot(), device = "pdf", dpi = 300, width = 40, height = 30, units = "cm")
+
+# Solution 3
+ggplot(data = data, 
+       aes(x=fc_agediag_r0, group = ms_codcancer, colour = ms_codcancer)) +
+    geom_density(stat = "bin", size = 1)+
+    scale_color_manual(values = primary.colors(n=12, step = 6))+
+    scale_x_continuous(breaks = seq(0,100, 5))+
+    scale_y_continuous(breaks = seq(0,1000, 10))+
+    labs(x = "Age",
+         y = "Count",
+         title = "Age distribution by cancer location",
+         colour = "Cancer location")+ theme_excel()
+
+ggsave("Solution 3.pdf", plot = last_plot(), device = "pdf", dpi = 300, width = 25, height = 20, units = "cm")
+```
+
+## 12. Determine the factors associated with physical and then mental quality of life, including variables with a p-value \< 0.2. Which model will you use? How will you proceed? Interpret the final result.
+
+```{r}
+data = data %>% 
+  rename(qol_mental = q5_mcs12_r1, 
+         qol_physical = q5_pcs12_r1)
+
+mod = corr.test(as.matrix(data[c("qol_mental", "qol_physical")]), as.matrix(data[sapply(data, is.numeric)]))
+
+corrplot(mod$r, p.mat = mod$p, insig = "label_sig", sig.level = 0.2)
+
+```
+
+```{r}
+# Making sure i'm not missing anything
+explicative_variables = c("fc_caisse", "ms_codcancer","fc_agediag_r0","q5_sd4_r1","q5_sd5","q5_sd10_r2","q5_eortc_fatigue_r1_fac", "q5_anxiete","q5_depression","q5_jobv5.36_r1","ms_csp_enq_3c_r1", "q5_med23.1_rec","q5_pain")
+
+# Printing the list of explicative variables, with their labels, that are gonna be used in the model
+kable(label(data[explicative_variables]))
+```
+
+```{r recoding reference mod for factor variables}
+# Recoding the reference for qualitative variables
+# List of factors to be recoded to make sure we correctly interpret the results
+subset(sapply(data,is.factor), sapply(data,is.factor)==1)
+
+data$fc_caisse <- relevel(data$fc_caisse, ref = "CNAMTS")
+data$ms_codcancer <- relevel(data$ms_codcancer, ref = "Breast")
+data$q5_sd4_r1 <- relevel(data$q5_sd4_r1, ref = "Married/Partnered/Concubine")
+data$q5_sd5 <- relevel(data$q5_sd5, ref = "Non")
+data$q5_sd10_r2 <- relevel(data$q5_sd10_r2, ref = "No degree")
+data$q5_anxiete <- relevel(data$q5_anxiete, ref = "No anxiety")
+data$q5_jobv5.36_r1 <- relevel(data$q5_jobv5.36_r1, ref = "Not employed")
+data$ms_csp_enq_3c_r1 <- relevel(data$ms_csp_enq_3c_r1, ref = "Not employed")
+data$q5_med23.1_rec <- relevel(data$q5_med23.1_rec, ref = "No sequelae")
+data$q5_pain <- relevel(data$q5_pain, ref = "Non")
+data$q5_eortc_fatigue_r1_fac <- relevel(data$q5_eortc_fatigue_r1_fac, ref = "Not clinically significant")
+
+```
+
+```{r Explicative model - linear regression}
+# Physical
+mod1 <- lm(data = data, q5_pcs12_r1 ~ fc_caisse + ms_codcancer + fc_agediag_r0 + q5_sd4_r1 + q5_sd5 + q5_sd10_r2 + q5_eortc_fatigue_r1_fac + q5_anxiete + q5_depression + q5_jobv5.36_r1 + q5_med23.1_rec + q5_pain)
+
+# Mental
+mod2 <- lm(data = data, q5_mcs12_r1 ~ fc_caisse + ms_codcancer + fc_agediag_r0 + q5_sd4_r1 + q5_sd5 + q5_sd10_r2 + q5_eortc_fatigue_r1_fac + q5_anxiete + q5_depression + q5_jobv5.36_r1 + q5_med23.1_rec + q5_pain)
+
+
+```
+
+Association, not implying causality, between two quantitative variables and
+
+## 13. Export the new database in ".csv" format.
+
+```{r}
+
+```
+
+## 
