@@ -1,28 +1,32 @@
 ---
-title: "Homework part 3"
+title: "Homework 1 - part 3"
 author: "Francesco MONTI"
 date: "2022-11-17"
-output: pdf_document
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
 option: warning = F
-editor_options: 
+editor_options:
   chunk_output_type: console
 ---
 
-```{r libraries}
+```{r libraries, echo=F}
 library(stringr)
 library(prettyR)
 library(ggplot2)
 library(tidyverse)
 library(ggthemes)
 library(colorRamps)
-library(corrplot)
 library(psych)
 library(Hmisc)
 library(knitr)
 
 ```
 
-## 1) Import the file "BDD_VICAN.csv"
+Nota bene: output will go to the console, as defined in the global options.
+
+## 1. Import the file "BDD_VICAN.csv"
 
 ```{r}
 data <- read.csv("BDD_VICAN.csv", sep = ";", dec = ",", encoding = "UTF-8")
@@ -30,7 +34,7 @@ data <- read.csv("BDD_VICAN.csv", sep = ";", dec = ",", encoding = "UTF-8")
 names(data) = tolower(names(data)) # removing capital letters as working with them can be annoying
 ```
 
-## 2) Display the first lines of the dataset. Display the lines 1; 4; 18; 103 of the dataset
+## 2. Display the first lines of the dataset. Display the lines 1; 4; 18; 103 of the dataset
 
 ```{r echo=F}
 head(data) # first lines
@@ -108,6 +112,12 @@ data$q5_anxiete <- factor(data$q5_anxiete,
                           labels = c("No anxiety", "Questionable anxiety state",
                                      "Certain anxiety state"))
 
+# Depression
+data$q5_depression <- factor(data$q5_depression,
+                             labels = c("No depression", 
+                                        "Questionable depression state",
+                                        "Certain depression state"))
+
 # Net salary category
 data$q5_jobv5.36_r1 <- factor(data$q5_jobv5.36_r1, 
                               labels = c("<1500€", ">=1500€","Not employed"))
@@ -149,15 +159,13 @@ label(data$q5_eortc_fatigue_r1) <- "EORTC fatigue scale"
 data$q5_eortc_fatigue_r1_fac = 
   cut(data$q5_eortc_fatigue_r1, 
       breaks = c(0,40,100), 
-      labels = c("Clinically significant", "Not clinically significant"), 
+      labels = c("Not Clinically significant", "Clinically significant"), 
       include.lowest = T)
 
 label(data$q5_eortc_fatigue_r1_fac) <- "EORTC fatigue scale"
 ```
 
-## 8. Group the modalities of the variable sequelae into 3 modalities.
-
-This new variable, named "Q5_med23.1_rec" will be considered in the following analyses instead of "Q5_med23.1".
+## 8. Group the modalities of the variable sequelae into 3 modalities. This new variable, named "Q5_med23.1_rec" will be considered in the following analyses instead of "Q5_med23.1".
 
 ```{r}
 data$q5_med23.1_rec = factor(data$q5_med23.1,
@@ -256,18 +264,7 @@ ggsave("Solution 3.pdf", plot = last_plot(), device = "pdf", dpi = 300, width = 
 ## 12. Determine the factors associated with physical and then mental quality of life, including variables with a p-value \< 0.2. Which model will you use? How will you proceed? Interpret the final result.
 
 ```{r}
-data = data %>% 
-  rename(qol_mental = q5_mcs12_r1, 
-         qol_physical = q5_pcs12_r1)
-
-mod = corr.test(as.matrix(data[c("qol_mental", "qol_physical")]), as.matrix(data[sapply(data, is.numeric)]))
-
-corrplot(mod$r, p.mat = mod$p, insig = "label_sig", sig.level = 0.2)
-
-```
-
-```{r}
-# Making sure i'm not missing anything
+# Listing the explicative variables
 explicative_variables = c("fc_caisse", "ms_codcancer","fc_agediag_r0","q5_sd4_r1","q5_sd5","q5_sd10_r2","q5_eortc_fatigue_r1_fac", "q5_anxiete","q5_depression","q5_jobv5.36_r1","ms_csp_enq_3c_r1", "q5_med23.1_rec","q5_pain")
 
 # Printing the list of explicative variables, with their labels, that are gonna be used in the model
@@ -289,21 +286,83 @@ data$q5_jobv5.36_r1 <- relevel(data$q5_jobv5.36_r1, ref = "Not employed")
 data$ms_csp_enq_3c_r1 <- relevel(data$ms_csp_enq_3c_r1, ref = "Not employed")
 data$q5_med23.1_rec <- relevel(data$q5_med23.1_rec, ref = "No sequelae")
 data$q5_pain <- relevel(data$q5_pain, ref = "Non")
-data$q5_eortc_fatigue_r1_fac <- relevel(data$q5_eortc_fatigue_r1_fac, ref = "Not clinically significant")
+data$q5_depression <- relevel(data$q5_depression, ref = "No depression")
+data$q5_eortc_fatigue_r1_fac <- relevel(data$q5_eortc_fatigue_r1_fac, ref = "Not Clinically significant")
 
+# Checking if any of the factor levels has a low effective
+data %>% select(where(is.factor)) %>% apply(2,table)
 ```
 
 ```{r Explicative model - linear regression}
-# Physical
-mod1 <- lm(data = data, q5_pcs12_r1 ~ fc_caisse + ms_codcancer + fc_agediag_r0 + q5_sd4_r1 + q5_sd5 + q5_sd10_r2 + q5_eortc_fatigue_r1_fac + q5_anxiete + q5_depression + q5_jobv5.36_r1 + q5_med23.1_rec + q5_pain)
+# Physical QoL
+mod1 <- lm(data = data, q5_pcs12_r1 ~ fc_caisse + ms_codcancer + fc_agediag_r0 + q5_sd4_r1 + q5_sd5 + q5_sd10_r2 + q5_eortc_fatigue_r1_fac + q5_anxiete + q5_depression + q5_jobv5.36_r1 + q5_med23.1_rec + q5_pain + q5_mcs12_r1)
 
-# Mental
-mod2 <- lm(data = data, q5_mcs12_r1 ~ fc_caisse + ms_codcancer + fc_agediag_r0 + q5_sd4_r1 + q5_sd5 + q5_sd10_r2 + q5_eortc_fatigue_r1_fac + q5_anxiete + q5_depression + q5_jobv5.36_r1 + q5_med23.1_rec + q5_pain)
+# Mental QoL
+mod2 <- lm(data = data, q5_mcs12_r1 ~ fc_caisse + ms_codcancer + fc_agediag_r0 + q5_sd4_r1 + q5_sd5 + q5_sd10_r2 + q5_eortc_fatigue_r1_fac + q5_anxiete + q5_depression + q5_jobv5.36_r1 + q5_med23.1_rec + q5_pain + q5_pcs12_r1)
 
+# Factors associated to physical QoL score
+subset(summary(mod1)$coefficients, 
+       summary(mod1)$coefficients[, 4] < 0.2) %>% # filter for p-value<0.2
+  data.frame() %>%
+  arrange(Estimate) %>% # ordering according to the column Estimate
+  kable(caption = "Factors associated to physical QoL score",
+        col.names = c("Estimate", "Std error", "t-value", "P-value"))
+
+# Factors associated to mental QoL score
+subset(
+  summary(mod2)$coefficients,
+  summary(mod2)$coefficients[, 4] < 0.2) %>% # filter for p-value<0.2
+  data.frame() %>%
+  arrange(Estimate) %>% # ordering according to the column Estimate
+  kable(caption = "Factors associated to mental QoL score",
+        col.names = c("Estimate", "Std error", "t-value", "P-value"))
 
 ```
 
-Association, not implying causality, between two quantitative variables and
+#### How to interpret the linear regression model
+
+Printed tables have already been filter to exclude results with a p-value \>= 0.2 criteria.
+
+Nota bene: these are *associations*, not implying causality.
+
+**Categorical variables**: under the column "Estimate", the table shows the average difference between a given modality and the reference modality for the same factor variable, as defined in the code chunk "*recoding reference mod for factor variables*".\
+For example, patients in a "*Certain depression state*" score, on average, 5.63 points lower for Physical QoL compared to "*non-depressed*" patients.\
+According to the same logic, someone with a monthly salary over 1500€ scores on average 2.78 points higher compaired to un unemployed patient.\
+The same logic applies all others categorical variables and modalities.
+
+**Quantitative variables**: two are the numeric variables taken into account by the model, patient's age and "the other" QoL score.\
+In a plot where x="Age" and Y=QoL score, *Estimate* is the coefficient that ties the two variables.\
+For example, for every additional year of age at diagnosis, physical QoL score lowers, on average, by 0.084 .
+
+------------------------------------------------------------------------
+
+**Key messages:**
+
+Nota bene: the huge population allow us to have great statistical power, lots of associations come out as statistically relevant but the magnitude of the effect is very small and frankly irrelevant on a scale that goes from 0 to 100 (or so it seems, we've no additional information on scale boundaries).
+
+1)  *Depressed* and *anxious* patients score lower on both scales with an impact proportional to the severity of the psychiatric pathology.
+
+Patients with *sequels* and *clinically significant fatigue* are also associated with scores notably lower.
+
+[These 4 variables seems to be the only truly impact-full ones.]{.underline}
+
+2)  Educational degree and monthly salary seems to have a modest impact only on the physical QoL score.
+
+3)  Mental and physical QoL scores look to be inversely proportional but the coefficient is rather small, requiring huge variations on a scale to impact the other one. This is unexpected nevetheless, if both scales go in the same direction ( 0 \--\> 100).
+
+4)  Age at diagnosis seems to have only a very small impact on both score, especially the mental one.
+
+5)  A few cancer locations come out as statistically significant. As :
+
+-   we have no additional information on the kind of therapy the patients underwent to or on the stade of their disease at diagnosis
+
+-   coefficients are very small (the most important one being lung cancer patients scoring 2 points lower for physical QoL, on average)
+
+-   results are inconsistent between the two score (lung cancer scoring the lowest for physical QoL and the highest for mental QoL score)
+
+    no meaningful hypothesis/explanation can be formulated.
+
+\
 
 ## 13. Export the new database in ".csv" format.
 
