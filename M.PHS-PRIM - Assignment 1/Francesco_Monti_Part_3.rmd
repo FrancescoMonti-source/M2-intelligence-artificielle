@@ -3,9 +3,9 @@ title: "Homework 1 - part 3"
 author: "Francesco MONTI"
 date: "2022-11-17"
 output:
+  pdf_document: default
   html_document:
     df_print: paged
-  pdf_document: default
 option: warning = F
 editor_options:
   chunk_output_type: console
@@ -207,14 +207,19 @@ t.test(breast_pop)$"conf.int" # T confidence interval for the breast cancer subp
 ### Calculate the variance, standard deviation of the sample, then that of breast cancer.
 
 ```{r}
-prettyR::describe(whole_pop,num.desc=c("var","sd"), xname="the age variable for the whole population", horizontal=FALSE)
+prettyR::describe(whole_pop,num.desc=c("var","sd"), 
+                  xname="the age variable for the whole population",
+                  horizontal=FALSE)
 
-prettyR::describe(breast_pop,num.desc=c("var","sd"), xname="the age variable for the breast cancer population", horizontal=FALSE)
+prettyR::describe(breast_pop,num.desc=c("var","sd"), 
+                  xname="the age variable for the breast cancer population",
+                  horizontal=FALSE)
 ```
 
 ## 11. Draw a graph that will represent the distribution of age by location of the pathology. Choose the most appropriate graph. Export the graph in a pdf format.
 
 ```{r}
+# In order of personal preference
 # Solution 1
 ggplot(data = data, 
        aes(x=fc_agediag_r0, group = ms_codcancer, fill = ms_codcancer)) +
@@ -323,7 +328,8 @@ subset(
 
 Printed tables have already been filter to exclude results with a p-value \>= 0.2 criteria.
 
-Nota bene: these are *associations*, not implying causality.
+Nota bene: these are *associations*, not implying causality. \
+The huge population allow us to have great statistical power, lots of associations come out as statistically relevant but the magnitude of the effect is very small and frankly irrelevant on a scale that goes from 0 to 100 (or so it seems, we've no additional information on scale boundaries).
 
 **Categorical variables**: under the column "Estimate", the table shows the average difference between a given modality and the reference modality for the same factor variable, as defined in the code chunk "*recoding reference mod for factor variables*".\
 For example, patients in a "*Certain depression state*" score, on average, 5.63 points lower for Physical QoL compared to "*non-depressed*" patients.\
@@ -336,15 +342,14 @@ For example, for every additional year of age at diagnosis, physical QoL score l
 
 ------------------------------------------------------------------------
 
-**Key messages:**
+**Key take-away messages:**
 
-Nota bene: the huge population allow us to have great statistical power, lots of associations come out as statistically relevant but the magnitude of the effect is very small and frankly irrelevant on a scale that goes from 0 to 100 (or so it seems, we've no additional information on scale boundaries).
+1)  *Depressed* and *anxious* patients score lower on both scales with an impact proportional to the severity of the psychiatric pathology.\
 
-1)  *Depressed* and *anxious* patients score lower on both scales with an impact proportional to the severity of the psychiatric pathology.
+    Patients with *sequels* and *clinically significant fatigue* are also associated with scores notably lower.\
 
-Patients with *sequels* and *clinically significant fatigue* are also associated with scores notably lower.
-
-[These 4 variables seems to be the only truly impact-full ones.]{.underline}
+    [These 4 variables seems to be the only truly impact-full ones.\
+    ]{.underline}
 
 2)  Educational degree and monthly salary seems to have a modest impact only on the physical QoL score.
 
@@ -362,12 +367,11 @@ Patients with *sequels* and *clinically significant fatigue* are also associated
 
     no meaningful hypothesis/explanation can be formulated.
 
-\
-
 ## 13. Export the new database in ".csv" format.
 
 ```{r}
-
+# Writing the .csv in the working directory
+write.csv(data,"new_BDD_VICAN_FM.csv", row.names = FALSE)
 ```
 
 ## 
