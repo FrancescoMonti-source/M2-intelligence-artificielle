@@ -1,0 +1,23 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+```{r Libraries}
+library(openxlsx)
+library(tidyverse)
+library(stringr)
+```
+
+```{r LOADING data}
+care <- read.csv("dataframe_abces_dentaire_20221228.csv", encoding = "UTF-8")
+
+rouen_doc <- read.xlsx("Extraction.xlsx", sheet = 1)
+rouen_sej_pmsi <- read.xlsx("Extraction.xlsx", sheet = 2)
+rouen_prescriptions_atb <- read.xlsx("Extraction.xlsx", sheet = 3)
+rouen_codes_pmsi <- read.xlsx("Extraction.xlsx", sheet = 4)
+rouen_codes_ccam <- read.xlsx("Extraction.xlsx", sheet = 5)
+rouen_concepts_long <- read.xlsx("Extraction.xlsx", sheet = 6)
+rouen_concepts_wide <- read.xlsx("Extraction.xlsx", sheet = 7)
+rouen_nomenclature_ccam <- read.xlsx("Extraction.xlsx", sheet = 9)
+```
+
