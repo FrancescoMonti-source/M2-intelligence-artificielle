@@ -2,15 +2,13 @@
 title: "R Notebook"
 output: html_notebook
 ---
-```{r Libraries}
+```{r Libraries, echo=F}
 library(openxlsx)
 library(tidyverse)
 library(stringr)
 ```
 
-```{r LOADING data}
-care <- read.csv("dataframe_abces_dentaire_20221228.csv", encoding = "UTF-8")
-
+```{r LOADING data, echo=F}
 rouen_doc <- read.xlsx("Extraction.xlsx", sheet = 1)
 rouen_sej_pmsi <- read.xlsx("Extraction.xlsx", sheet = 2)
 rouen_prescriptions_atb <- read.xlsx("Extraction.xlsx", sheet = 3)
@@ -18,6 +16,59 @@ rouen_codes_pmsi <- read.xlsx("Extraction.xlsx", sheet = 4)
 rouen_codes_ccam <- read.xlsx("Extraction.xlsx", sheet = 5)
 rouen_concepts_long <- read.xlsx("Extraction.xlsx", sheet = 6)
 rouen_concepts_wide <- read.xlsx("Extraction.xlsx", sheet = 7)
+dictionnaire <- read.xlsx("Extraction.xlsx", sheet = 8)
 rouen_nomenclature_ccam <- read.xlsx("Extraction.xlsx", sheet = 9)
+```
+
+```{r data management PMSI, echo=F}
+# Properly formatting to wide format
+rouen_codes_pmsi <-
+  rouen_codes_pmsi %>%
+  group_by(PATID, EVTID) %>%
+  summarise(PMSI = str_flatten(PMSI))
+# Widening
+rouen_codes_pmsi <- rouen_codes_pmsi %>%
+  mutate(PMSI = str_split_fixed(PMSI, "\\s", n = 50)) %>%
+  apply(2, str_remove, "\\:.+$")
+# Getting rid of redundancy (code:code)
+rouen_codes_pmsi <- rouen_codes_pmsi %>%
+  apply(2, str_remove, "\\:.+$") %>%
+  as.data.frame()
+# Pivoting back to long format to comfortably erase duplicates then back to wide format
+rouen_codes_pmsi <- pivot_longer(rouen_codes_pmsi, cols = 3:52, values_to = "pmsi") %>%
+  select(-name) %>% # dropping name column
+  distinct() %>% # dropping duplicates
+  group_by(PATID, EVTID) %>%
+  summarise(pmsi = str_flatten(pmsi, collapse = ",")) %>%
+  mutate(pmsi = str_remove(pmsi, "\\,$"))
+# Adding PMSI labels
+case_when(str_detect(rouen_codes_pmsi$pmsi, "K047") ~ "Abces periapical",
+          str_detect(rouen_codes_pmsi$pmsi, "K046") ~ "Abces periapical avec fistule",
+          str_detect(rouen_codes_pmsi$pmsi, "K052") ~ "Periodontite aigue",
+          str_detect(rouen_codes_pmsi$pmsi, "K053") ~ "Periodondite",
+          str_detect(rouen_codes_pmsi$pmsi, "K02.") ~ "Carie",
+          str_detect(rouen_codes_pmsi$pmsi, "K088") ~ "Autres affections precisees des dents et du parodonte",
+          str_detect(rouen_codes_pmsi$pmsi, "K089") ~ "Affection des dents et du parodonte, sans precision",
+          str_detect(rouen_codes_pmsi$pmsi, "K040|K045|K048") ~ "Maladies de la pulpe et des tissu périapicaux, 
+          autres et sans précision",
+          str_detect(rouen_codes_pmsi$pmsi, "K050|K056") ~ "Maladie périodontale, sans précision ",
+          str_detect(rouen_codes_pmsi$pmsi, "K068") ~ "Affection de la gencive et de la crête alvéolaire édentée,
+          sans précision")
+# names to lower case
+names(rouen_codes_pmsi) <- tolower(names(rouen_codes_pmsi))
+```
+
+```{r data management CCAM, echo = FALSE}
+rouen_codes_ccam <- left_join(rouen_codes_ccam,rouen_nomenclature_ccam[c(1,2)], by = c("CODEACTE" = "Code"))
+# names to lower case
+names(rouen_codes_ccam) <- tolower(names(rouen_codes_ccam))
+
+```
+
+```{r}
+# names to lower case
+names(rouen_sej_pmsi) <- tolower(names(rouen_sej_pmsi))
+
+
 ```
 
