@@ -9,14 +9,14 @@ library(stringr)
 ```
 
 ```{r LOADING data, echo=F}
-rouen_doc <- read.xlsx("Extraction.xlsx", sheet = 1)
+# rouen_doc <- read.xlsx("Extraction.xlsx", sheet = 1)
 rouen_sej_pmsi <- read.xlsx("Extraction.xlsx", sheet = 2)
 rouen_prescriptions_atb <- read.xlsx("Extraction.xlsx", sheet = 3)
 rouen_codes_pmsi <- read.xlsx("Extraction.xlsx", sheet = 4)
 rouen_codes_ccam <- read.xlsx("Extraction.xlsx", sheet = 5)
 rouen_concepts_long <- read.xlsx("Extraction.xlsx", sheet = 6)
 rouen_concepts_wide <- read.xlsx("Extraction.xlsx", sheet = 7)
-dictionnaire <- read.xlsx("Extraction.xlsx", sheet = 8)
+dictionnaire <- read.xlsx("Extraction.xlsx", sheet = 8, rows = 31:52, cols = 1:2)
 rouen_nomenclature_ccam <- read.xlsx("Extraction.xlsx", sheet = 9)
 ```
 
@@ -29,46 +29,71 @@ rouen_codes_pmsi <-
 # Widening
 rouen_codes_pmsi <- rouen_codes_pmsi %>%
   mutate(PMSI = str_split_fixed(PMSI, "\\s", n = 50)) %>%
-  apply(2, str_remove, "\\:.+$")
-# Getting rid of redundancy (code:code)
-rouen_codes_pmsi <- rouen_codes_pmsi %>%
   apply(2, str_remove, "\\:.+$") %>%
-  as.data.frame()
+  data.frame()
+# Getting rid of redundancy (code:code)
+# rouen_codes_pmsi <- rouen_codes_pmsi %>%
+#  apply(2, str_remove, "\\:.+$") %>%
+#  as.data.frame()
 # Pivoting back to long format to comfortably erase duplicates then back to wide format
-rouen_codes_pmsi <- pivot_longer(rouen_codes_pmsi, cols = 3:52, values_to = "pmsi") %>%
+rouen_codes_pmsi <-
+  pivot_longer(rouen_codes_pmsi, cols = 3:52, values_to = "pmsi") %>%
+  arrange(EVTID, pmsi, by_group = T) %>%
   select(-name) %>% # dropping name column
   distinct() %>% # dropping duplicates
   group_by(PATID, EVTID) %>%
   summarise(pmsi = str_flatten(pmsi, collapse = ",")) %>%
-  mutate(pmsi = str_remove(pmsi, "\\,$"))
+  mutate(pmsi = str_remove(pmsi, "\\,$|^\\,"))
 # Adding PMSI labels
-case_when(str_detect(rouen_codes_pmsi$pmsi, "K047") ~ "Abces periapical",
-          str_detect(rouen_codes_pmsi$pmsi, "K046") ~ "Abces periapical avec fistule",
-          str_detect(rouen_codes_pmsi$pmsi, "K052") ~ "Periodontite aigue",
-          str_detect(rouen_codes_pmsi$pmsi, "K053") ~ "Periodondite",
-          str_detect(rouen_codes_pmsi$pmsi, "K02.") ~ "Carie",
-          str_detect(rouen_codes_pmsi$pmsi, "K088") ~ "Autres affections precisees des dents et du parodonte",
-          str_detect(rouen_codes_pmsi$pmsi, "K089") ~ "Affection des dents et du parodonte, sans precision",
-          str_detect(rouen_codes_pmsi$pmsi, "K040|K045|K048") ~ "Maladies de la pulpe et des tissu périapicaux, 
+rouen_codes_pmsi$pmsi_label = case_when(
+  str_detect(rouen_codes_pmsi$pmsi, "K047") ~ "Abces periapical",
+  str_detect(rouen_codes_pmsi$pmsi, "K046") ~ "Abces periapical avec fistule",
+  str_detect(rouen_codes_pmsi$pmsi, "K052") ~ "Periodontite aigue",
+  str_detect(rouen_codes_pmsi$pmsi, "K053") ~ "Periodondite",
+  str_detect(rouen_codes_pmsi$pmsi, "K02.") ~ "Carie",
+  str_detect(rouen_codes_pmsi$pmsi, "K088") ~ "Autres affections precisees des dents et du parodonte",
+  str_detect(rouen_codes_pmsi$pmsi, "K089") ~ "Affection des dents et du parodonte, sans precision",
+  str_detect(rouen_codes_pmsi$pmsi, "K040|K045|K048") ~ "Maladies de la pulpe et des tissu périapicaux,
           autres et sans précision",
-          str_detect(rouen_codes_pmsi$pmsi, "K050|K056") ~ "Maladie périodontale, sans précision ",
-          str_detect(rouen_codes_pmsi$pmsi, "K068") ~ "Affection de la gencive et de la crête alvéolaire édentée,
-          sans précision")
+  str_detect(rouen_codes_pmsi$pmsi, "K050|K056") ~ "Maladie périodontale, sans précision ",
+  str_detect(rouen_codes_pmsi$pmsi, "K068") ~ "Affection de la gencive et de la crête alvéolaire édentée,
+          sans précision"
+)
 # names to lower case
 names(rouen_codes_pmsi) <- tolower(names(rouen_codes_pmsi))
+
+# Now that DPs always precede DS, we can remove labels to make codes more readable
+rouen_codes_pmsi$pmsi <-
+  rouen_codes_pmsi$pmsi %>% str_remove_all("DS\\'|DP\\'|DD\\'")
 ```
 
 ```{r data management CCAM, echo = FALSE}
-rouen_codes_ccam <- left_join(rouen_codes_ccam,rouen_nomenclature_ccam[c(1,2)], by = c("CODEACTE" = "Code"))
+rouen_codes_ccam <- left_join(rouen_codes_ccam, rouen_nomenclature_ccam[c(1, 2)], by = c("CODEACTE" = "Code"))
 # names to lower case
 names(rouen_codes_ccam) <- tolower(names(rouen_codes_ccam))
-
 ```
 
-```{r}
+```{r data management SEJOURS, echo = F}
 # names to lower case
 names(rouen_sej_pmsi) <- tolower(names(rouen_sej_pmsi))
 
+# Preparing dictionary for join
+names(dictionnaire) <- c("code", "label")
+dictionnaire$code <- as.character(dictionnaire$code)
 
+# Joining labels to main table
+rouen <- left_join(rouen_sej_pmsi, dictionnaire, by = c("modeent" = "code")) %>%
+  rename(modeent_label = label) %>%
+  left_join(dictionnaire, by = c("modesort" = "code")) %>%
+  rename(modesort_label = label)
+
+# Replacing "retour du domicile" with "retour AU domicile")
+rouen$modesort_label[which(rouen$modesort_label == "Du domicile")] <- "Au domicile"
 ```
 
+```{r joining tables, echo = F}
+names(rouen_codes_pmsi) <- tolower(names(rouen_codes_pmsi))
+rouen = left_join(rouen, rouen_codes_pmsi)
+rouen = left_join(rouen, rouen_codes_ccam[c("patid","evtid","codeacte","texte")]) %>% 
+    rename(acte = codeacte, acte_label = texte)
+```
