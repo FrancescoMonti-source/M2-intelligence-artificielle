@@ -1,17 +1,22 @@
 ---
 title: "R Notebook"
-output: html_notebook
+output:
+  html_document:
+    df_print: paged
 ---
-```{r Libraries, echo=F}
+
+```{r Libraries, include=F}
 library(openxlsx)
 library(tidyverse)
 library(stringr)
+library(knitr)
+library(ggplot2)
 ```
 
-```{r LOADING data, echo=F}
+```{r LOADING data, include=F, }
 # rouen_doc <- read.xlsx("Extraction.xlsx", sheet = 1)
 rouen_sej_pmsi <- read.xlsx("Extraction.xlsx", sheet = 2)
-rouen_prescriptions_atb <- read.xlsx("Extraction.xlsx", sheet = 3)
+rouen_atb <- read.xlsx("Extraction.xlsx", sheet = 3)
 rouen_codes_pmsi <- read.xlsx("Extraction.xlsx", sheet = 4)
 rouen_codes_ccam <- read.xlsx("Extraction.xlsx", sheet = 5)
 rouen_concepts_long <- read.xlsx("Extraction.xlsx", sheet = 6)
@@ -20,7 +25,7 @@ dictionnaire <- read.xlsx("Extraction.xlsx", sheet = 8, rows = 31:52, cols = 1:2
 rouen_nomenclature_ccam <- read.xlsx("Extraction.xlsx", sheet = 9)
 ```
 
-```{r data management PMSI, echo=F}
+```{r dm PMSI, include=F}
 # Properly formatting to wide format
 rouen_codes_pmsi <-
   rouen_codes_pmsi %>%
@@ -31,21 +36,18 @@ rouen_codes_pmsi <- rouen_codes_pmsi %>%
   mutate(PMSI = str_split_fixed(PMSI, "\\s", n = 50)) %>%
   apply(2, str_remove, "\\:.+$") %>%
   data.frame()
-# Getting rid of redundancy (code:code)
-# rouen_codes_pmsi <- rouen_codes_pmsi %>%
-#  apply(2, str_remove, "\\:.+$") %>%
-#  as.data.frame()
+
 # Pivoting back to long format to comfortably erase duplicates then back to wide format
 rouen_codes_pmsi <-
   pivot_longer(rouen_codes_pmsi, cols = 3:52, values_to = "pmsi") %>%
   arrange(EVTID, pmsi, by_group = T) %>%
-  select(-name) %>% # dropping name column
+  select(-name) %>% # dropping "name" column
   distinct() %>% # dropping duplicates
   group_by(PATID, EVTID) %>%
   summarise(pmsi = str_flatten(pmsi, collapse = ",")) %>%
   mutate(pmsi = str_remove(pmsi, "\\,$|^\\,"))
 # Adding PMSI labels
-rouen_codes_pmsi$pmsi_label = case_when(
+rouen_codes_pmsi$pmsi_label <- case_when(
   str_detect(rouen_codes_pmsi$pmsi, "K047") ~ "Abces periapical",
   str_detect(rouen_codes_pmsi$pmsi, "K046") ~ "Abces periapical avec fistule",
   str_detect(rouen_codes_pmsi$pmsi, "K052") ~ "Periodontite aigue",
@@ -53,27 +55,25 @@ rouen_codes_pmsi$pmsi_label = case_when(
   str_detect(rouen_codes_pmsi$pmsi, "K02.") ~ "Carie",
   str_detect(rouen_codes_pmsi$pmsi, "K088") ~ "Autres affections precisees des dents et du parodonte",
   str_detect(rouen_codes_pmsi$pmsi, "K089") ~ "Affection des dents et du parodonte, sans precision",
-  str_detect(rouen_codes_pmsi$pmsi, "K040|K045|K048") ~ "Maladies de la pulpe et des tissu périapicaux,
-          autres et sans précision",
-  str_detect(rouen_codes_pmsi$pmsi, "K050|K056") ~ "Maladie périodontale, sans précision ",
-  str_detect(rouen_codes_pmsi$pmsi, "K068") ~ "Affection de la gencive et de la crête alvéolaire édentée,
-          sans précision"
+  str_detect(rouen_codes_pmsi$pmsi, "K040|K045|K048") ~ "Maladies de la pulpe et des tissu périapicaux, autres et sans précision",
+  str_detect(rouen_codes_pmsi$pmsi, "K050|K056") ~ "Maladie périodontale, sans précision",
+  str_detect(rouen_codes_pmsi$pmsi, "K068") ~ "Affection de la gencive et de la crête alvéolaire édentée, sans précision"
 )
 # names to lower case
 names(rouen_codes_pmsi) <- tolower(names(rouen_codes_pmsi))
 
 # Now that DPs always precede DS, we can remove labels to make codes more readable
-rouen_codes_pmsi$pmsi <-
-  rouen_codes_pmsi$pmsi %>% str_remove_all("DS\\'|DP\\'|DD\\'")
+rouen_codes_pmsi$pmsi <- rouen_codes_pmsi$pmsi %>% str_remove_all("DS\\'|DP\\'|DD\\'")
 ```
 
-```{r data management CCAM, echo = FALSE}
-rouen_codes_ccam <- left_join(rouen_codes_ccam, rouen_nomenclature_ccam[c(1, 2)], by = c("CODEACTE" = "Code"))
+```{r dm CCAM, include = FALSE}
+rouen_codes_ccam <-
+  left_join(rouen_codes_ccam, rouen_nomenclature_ccam[c(1, 2)], by = c("CODEACTE" = "Code"))
 # names to lower case
 names(rouen_codes_ccam) <- tolower(names(rouen_codes_ccam))
 ```
 
-```{r data management SEJOURS, echo = F}
+```{r dm SEJOURS, include = F}
 # names to lower case
 names(rouen_sej_pmsi) <- tolower(names(rouen_sej_pmsi))
 
@@ -82,7 +82,8 @@ names(dictionnaire) <- c("code", "label")
 dictionnaire$code <- as.character(dictionnaire$code)
 
 # Joining labels to main table
-rouen <- left_join(rouen_sej_pmsi, dictionnaire, by = c("modeent" = "code")) %>%
+rouen <-
+  left_join(rouen_sej_pmsi, dictionnaire, by = c("modeent" = "code")) %>%
   rename(modeent_label = label) %>%
   left_join(dictionnaire, by = c("modesort" = "code")) %>%
   rename(modesort_label = label)
@@ -91,9 +92,57 @@ rouen <- left_join(rouen_sej_pmsi, dictionnaire, by = c("modeent" = "code")) %>%
 rouen$modesort_label[which(rouen$modesort_label == "Du domicile")] <- "Au domicile"
 ```
 
-```{r joining tables, echo = F}
+```{r dm joining tables, include = F}
 names(rouen_codes_pmsi) <- tolower(names(rouen_codes_pmsi))
-rouen = left_join(rouen, rouen_codes_pmsi)
-rouen = left_join(rouen, rouen_codes_ccam[c("patid","evtid","codeacte","texte")]) %>% 
-    rename(acte = codeacte, acte_label = texte)
+# Adding pmsi codes table
+rouen <- left_join(rouen, rouen_codes_pmsi)
+# Adding ccam acts table
+rouen <-
+  left_join(rouen, rouen_codes_ccam[c("patid", "evtid", "codeacte", "texte")]) %>%
+  rename(acte = codeacte, acte_label = texte)
+
+rouen <- distinct(rouen) # erasing eventual duplicates
 ```
+
+# Descriptive analysis
+
+```{r include=F}
+rouen$sejdur <- as.numeric(rouen$sejdur)
+
+unique_ids <- length(unique(rouen$patid))
+unique_stays <- length(unique(rouen$evtid))
+
+# How many stays started with an arrival from personal home
+entry_mode <- rouen %>%
+  select(evtid, sejum, modeent_label) %>%
+  filter(sejum == "URGE" & modeent_label == "Du domicile") %>%
+  distinct() %>%
+  nrow()
+```
+
+We have `r unique_ids` **unique patients** and `r unique_stays` **unique hospital stays/emergency ward visits** so basically every patient consulted only once for dental problems, at the hospital, over the period of interest. 
+`r round((entry_mode/unique_stays)*100,2)`% of the consultations/stays started with a visit to the emergency ward, coming from domicile as it was a selection criteria. 
+
+Patient consulted for:
+```{r DP de consultation, echo=F}
+rouen %>%
+  select(evtid, pmsi_label) %>%
+  distinct() %>%
+  count(pmsi_label) %>%
+  mutate(freq = round(prop.table(n) * 100, 2)) %>%
+  arrange(desc(n)) %>%
+  kable(col.names = c("Main diagnosis", "n", "freq"))
+
+rouen %>%
+  select(evtid, pmsi_label) %>%
+  distinct() %>%
+  count(pmsi_label) %>%
+  ggplot(aes(y = factor(pmsi_label, levels = pmsi_label[order(n)]), x = n)) +
+  geom_bar(stat = "identity")+
+    labs(y="Main diagnosis")
+    
+    
+    
+```
+
+**Mean lenght of stay** was `r round(mean(rouen$sejdur,na.rm=T),2)` days.
