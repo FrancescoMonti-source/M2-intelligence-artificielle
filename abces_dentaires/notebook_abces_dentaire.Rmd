@@ -12,7 +12,6 @@ library(stringr)
 library(knitr)
 library(ggplot2)
 ```
-
 ```{r LOADING data, include=F, }
 # rouen_doc <- read.xlsx("Extraction.xlsx", sheet = 1)
 rouen_sej_pmsi <- read.xlsx("Extraction.xlsx", sheet = 2)
@@ -24,7 +23,6 @@ rouen_concepts_wide <- read.xlsx("Extraction.xlsx", sheet = 7)
 dictionnaire <- read.xlsx("Extraction.xlsx", sheet = 8, rows = 31:52, cols = 1:2)
 rouen_nomenclature_ccam <- read.xlsx("Extraction.xlsx", sheet = 9)
 ```
-
 ```{r dm PMSI, include=F}
 # Properly formatting to wide format
 rouen_codes_pmsi <-
@@ -65,14 +63,12 @@ names(rouen_codes_pmsi) <- tolower(names(rouen_codes_pmsi))
 # Now that DPs always precede DS, we can remove labels to make codes more readable
 rouen_codes_pmsi$pmsi <- rouen_codes_pmsi$pmsi %>% str_remove_all("DS\\'|DP\\'|DD\\'")
 ```
-
 ```{r dm CCAM, include = FALSE}
 rouen_codes_ccam <-
   left_join(rouen_codes_ccam, rouen_nomenclature_ccam[c(1, 2)], by = c("CODEACTE" = "Code"))
 # names to lower case
 names(rouen_codes_ccam) <- tolower(names(rouen_codes_ccam))
 ```
-
 ```{r dm SEJOURS, include = F}
 # names to lower case
 names(rouen_sej_pmsi) <- tolower(names(rouen_sej_pmsi))
@@ -91,7 +87,6 @@ rouen <-
 # Replacing "retour du domicile" with "retour AU domicile")
 rouen$modesort_label[which(rouen$modesort_label == "Du domicile")] <- "Au domicile"
 ```
-
 ```{r dm joining tables, include = F}
 names(rouen_codes_pmsi) <- tolower(names(rouen_codes_pmsi))
 # Adding pmsi codes table
@@ -103,14 +98,17 @@ rouen <-
 
 rouen <- distinct(rouen) # erasing eventual duplicates
 ```
-
 # Descriptive analysis
-
 ```{r include=F}
 rouen$sejdur <- as.numeric(rouen$sejdur)
 
 unique_ids <- length(unique(rouen$patid))
 unique_stays <- length(unique(rouen$evtid))
+
+rouen$patage <- as.numeric(rouen$patage)
+mean_age <- round(mean(rouen$patage, na.rm = T), 2)
+female_mean_age <- round(y(rouen$patage, rouen$patsex, mean, na.rm = T)[["F"]], 2)
+male_mean_age <- round(by(rouen$patage, rouen$patsex, mean, na.rm = T)[["M"]], 2)
 
 # How many stays started with an arrival from personal home
 entry_mode <- rouen %>%
@@ -119,8 +117,42 @@ entry_mode <- rouen %>%
   distinct() %>%
   nrow()
 ```
+We have `r unique_ids` **unique patients** and `r unique_stays` **unique hospital stays/emergency ward visits** so basically every patient consulted only once for dental problems, at the hospital, over the period of interest which is the calendar year 2021.
 
-We have `r unique_ids` **unique patients** and `r unique_stays` **unique hospital stays/emergency ward visits** so basically every patient consulted only once for dental problems, at the hospital, over the period of interest. 
+## Age
+**Mean age**  for both sex combined is `r mean_age` years (*sd* = `r round(sd(rouen$patage),2)`) while
+it's `r female_mean_age` (*sd* = `r round(sd(rouen$patage[rouen$patsex=="F"]),2)`) for women and `r male_mean_age` (*sd* = `r round(sd(rouen$patage[rouen$patsex=="M"]),2)`)for men.
+```{r age distribution, echo = F}
+rouen %>%
+  select(patid, evtid, patage, patsex) %>%
+  distinct() %>%
+  ggplot() +
+  geom_histogram(aes(x = patage), binwidth = 5, color = "white", boundary = .5) +
+  scale_x_continuous(breaks = seq(0, 100, 5)) +
+  scale_y_continuous(breaks = seq(0, 100, 10)) +
+  labs(
+    title = "Age distribution",
+    x = "Age",
+    y = "Frequency"
+  )
+
+rouen %>%
+  select(patid, evtid, patage, patsex) %>%
+  distinct() %>%
+  ggplot(aes(x = patage)) +
+  geom_histogram(binwidth = 5, aes(fill = patsex), alpha = .8, position = "identity", boundary = .5) +
+  # geom_density(aes(y = ..density.. * (nrow(rouen) * 5), color = patsex), size = 1)+
+  scale_x_continuous(breaks = seq(0, 100, 5)) +
+  scale_y_continuous(breaks = seq(0, 100, 5)) +
+  labs(
+    title = "Age distribution by sex",
+    x = "Age",
+    y = "Frequency",
+    fill = "Sex"
+  )
+```
+
+## Consultations
 `r round((entry_mode/unique_stays)*100,2)`% of the consultations/stays started with a visit to the emergency ward, coming from domicile as it was a selection criteria. 
 
 Patient consulted for:
@@ -137,12 +169,28 @@ rouen %>%
   select(evtid, pmsi_label) %>%
   distinct() %>%
   count(pmsi_label) %>%
-  ggplot(aes(y = factor(pmsi_label, levels = pmsi_label[order(n)]), x = n)) +
-  geom_bar(stat = "identity")+
-    labs(y="Main diagnosis")
-    
-    
-    
+  ggplot(aes(y = factor(pmsi_label, levels = pmsi_label[order(n)]), x = n, 
+             label = c("K047", "K046", "K068", "K089", "K088", "K02*", "K056", 
+                       "K049", "K053", "K052"))) +
+  geom_bar(stat = "identity") +
+    geom_label(hjust="left", nudge_x = 5)+
+  labs(y = "Main diagnosis")
 ```
 
+## Stays
 **Mean lenght of stay** was `r round(mean(rouen$sejdur,na.rm=T),2)` days.
+```{r echo=F}
+rouen$pmsi <- str_replace_all(rouen$pmsi, "K040|K045|K048", "K049")
+rouen$pmsi <- str_replace_all(rouen$pmsi, "K050|K056", "K056")
+
+cbind(
+  "Code" = c("K047", "K046", "K052", "K053", "K02*", "K088", "K089", "K049", "K056", "K068"),
+  "Label" = c("Abces periapical", "Abces periapical avec fistule", "Periodontite aigue",
+    "Periodondite", "Carie", "Autres affections precisees des dents et du parodonte",
+    "Affection des dents et du parodonte, sans precision",
+    "Maladies de la pulpe et des tissu périapicaux, autres et sans précision",
+    "Maladie périodontale, sans précision",
+    "Affection de la gencive et de la crête alvéolaire édentée, sans précision"
+  )
+) %>% data.frame %>% arrange(Code) %>% kable()
+```
